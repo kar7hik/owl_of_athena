@@ -33,13 +33,15 @@
   "List of the four corner positions")
 (defparameter *sides* '(2 4 6 8)
   "List of four side squares")
+
+(defparameter *right-diagonal* '(1 5 9))
+(defparameter *left-diagonal* '(3 5 7))
+
 (defparameter *triplets*
-  '((1 2 3) (4 5 6) (7 8 9) ;Horizontal triplets.
+  `((1 2 3) (4 5 6) (7 8 9) ;Horizontal triplets.
 	(1 4 7) (2 5 8) (3 6 9) ;Vertical triplets.
-	(1 5 9) (3 5 7)) ;Diagonal triplets.
+	,*right-diagonal* ,*left-diagonal*) ;Diagonal triplets.
   "Winning positions")
-
-
 
 
 
@@ -89,20 +91,8 @@ or a 10 (for X)"
 
 
 
-(setf b (make-board))
 
-(defun tcustom-board-create (board n) 
-  "For testing"
-  (let ((current-n (- (length board) n)))
-	(cond ((zerop n) nil)
-		  (t (format t "~&Enter the player at ~S: " current-n)
-			 (let ((prompt (read)))
-			   (make-move prompt current-n board))
-			 (tcustom-board-create board (- n 1))))
-	))
-(tcustom-board-create b 9)
-
-(print-board bo)
+;; (print-board bo)
 ;; (make-move *user* 5 b)
 ;; (make-move *computer* 3 b)
 ;; (print-board b)
@@ -245,13 +235,18 @@ or opponent-move as appropriate"
 
 (defun squeeze-play (board)
   "Checks the diagonals for an O-X-O pattern."
-  (cond ((or (equal (+ (nth 1 *corners*)
-					   (nth 4 *corners*))
-					(* 2 *user*))
-			 (equal (+ (nth 2 *corners*)
-					   (nth 3 *corners*))
-					(* 2 *user*)))
-		 (find-empty-position board *sides*))))
+  (cond ((or (equal (sum-triplets board
+								  *right-diagonal*)
+					(+ (* 2 *user*)
+					   *computer*))
+			 (equal (sum-triplets board
+								  *left-diagonal*)
+					 (+ (* 2 *user*)
+						*computer*)))
+		 (format t "squeeze play"))
+		(t (format t "not squeezing"))))
+
+
 
 (defun test-squeeze-play (board)
   
@@ -265,4 +260,38 @@ or opponent-move as appropriate"
 Otherwise returns a list containing a move number and explanation"
   )
 
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Creating Custom board configuration using read  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; (setf b (make-board))
+;; (defun tcustom-board-create (board n) 
+;;   "For testing"
+;;   (let ((current-n (- (length board) n)))
+;; 	(cond ((zerop n) nil)
+;; 		  (t (format t "~&Enter the player at ~S: " current-n)
+;; 			 (let ((prompt (read)))
+;; 			   (make-move prompt current-n board))
+;; 			 (tcustom-board-create board (- n 1))))
+;; 	))
+;; (tcustom-board-create b 9)
+
+
+
+
+(defun tcustom-board-create (board custom-positions-list size) 
+  "For testing - Creates custom configuration of board using the list given."
+  (let ((cnt (- (length board) size)))
+	(cond ((zerop size) nil)
+		  (t (make-move (first custom-positions-list)
+						cnt
+						board)
+			 (tcustom-board-create board
+								   (rest custom-positions-list)
+								   (- size 1))))))
 
